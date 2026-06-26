@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Oakwood Suites Tiwanon — Lead Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/dashboard.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-brand">
+        <div class="brand-logo">OS</div>
+        <div>
+          <div class="brand-name">Oakwood Suites Tiwanon</div>
+          <div class="brand-sub">Lead Capture Dashboard</div>
+        </div>
+      </div>
+      <div class="header-meta">
+        <span class="live-dot"></span>
+        <span id="clock" class="header-time"></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- STAT CARDS -->
+    <section class="stats-grid">
+      <div class="stat-card stat-today">
+        <div class="stat-icon">📥</div>
+        <div class="stat-body">
+          <div class="stat-value"><%= totalToday %></div>
+          <div class="stat-label">Leads Today</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-body">
+          <div class="stat-value"><%= totalLeads %></div>
+          <div class="stat-label">Total Leads</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🏆</div>
+        <div class="stat-body">
+          <div class="stat-value"><%= bookedLeads %></div>
+          <div class="stat-label">Booked</div>
+        </div>
+      </div>
+      <div class="stat-card stat-conversion">
+        <div class="stat-icon">📈</div>
+        <div class="stat-body">
+          <div class="stat-value"><%= conversionRate %>%</div>
+          <div class="stat-label">Conversion Rate</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHARTS ROW -->
+    <section class="charts-row">
+
+      <!-- By Channel -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Leads by Channel</h2>
+        </div>
+        <div class="card-body">
+          <% const channelMap = {}; byChannel.forEach(r => channelMap[r.channel] = r.count); %>
+          <% const lineCount = channelMap['LINE'] || 0; %>
+          <% const fbCount = channelMap['Facebook'] || 0; %>
+          <% const chTotal = lineCount + fbCount || 1; %>
+          <div class="channel-bars">
+            <div class="channel-row">
+              <div class="channel-label">
+                <span class="ch-dot ch-line"></span>LINE
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill bar-line" style="width:<%= Math.round(lineCount/chTotal*100) %>%"></div>
+              </div>
+              <div class="channel-count"><%= lineCount %></div>
+            </div>
+            <div class="channel-row">
+              <div class="channel-label">
+                <span class="ch-dot ch-fb"></span>Facebook
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill bar-fb" style="width:<%= Math.round(fbCount/chTotal*100) %>%"></div>
+              </div>
+              <div class="channel-count"><%= fbCount %></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- By Package -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Leads by Package</h2>
+        </div>
+        <div class="card-body">
+          <% if (byPackage.length === 0) { %>
+            <p class="empty-hint">No package data yet</p>
+          <% } else { %>
+            <% const pkgTotal = byPackage.reduce((s, r) => s + r.count, 0) || 1; %>
+            <div class="pkg-list">
+              <% byPackage.forEach(function(row, i) { %>
+                <div class="pkg-row">
+                  <div class="pkg-name"><%= row.package %></div>
+                  <div class="bar-track">
+                    <div class="bar-fill bar-pkg" style="width:<%= Math.round(row.count/pkgTotal*100) %>%"></div>
+                  </div>
+                  <div class="pkg-count"><%= row.count %></div>
+                </div>
+              <% }); %>
+            </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- By Status -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Status Breakdown</h2>
+        </div>
+        <div class="card-body">
+          <div class="status-pills">
+            <% const statusMap = {}; byStatus.forEach(r => statusMap[r.status] = r.count); %>
+            <% ['new','follow-up','booked','lost'].forEach(function(s) { %>
+              <div class="status-pill-card status-<%= s %>">
+                <div class="pill-count"><%= statusMap[s] || 0 %></div>
+                <div class="pill-label"><%= s.charAt(0).toUpperCase() + s.slice(1) %></div>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- LEAD TABLE -->
+    <section class="card table-card">
+      <div class="card-header table-header">
+        <h2 class="card-title">All Leads</h2>
+        <div class="table-filters">
+          <select id="filterChannel" class="filter-select">
+            <option value="">All Channels</option>
+            <option value="LINE">LINE</option>
+            <option value="Facebook">Facebook</option>
+          </select>
+          <select id="filterStatus" class="filter-select">
+            <option value="">All Status</option>
+            <option value="new">New</option>
+            <option value="follow-up">Follow-up</option>
+            <option value="booked">Booked</option>
+            <option value="lost">Lost</option>
+          </select>
+          <input type="text" id="filterSearch" class="filter-input" placeholder="Search name or message…" />
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="leads-table" id="leadsTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Channel</th>
+              <th>Package</th>
+              <th>Message</th>
+              <th>Check-in</th>
+              <th>Nights</th>
+              <th>Status</th>
+              <th>Received</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% leads.forEach(function(lead) { %>
+            <tr data-channel="<%= lead.channel %>" data-status="<%= lead.status %>" data-id="<%= lead.id %>">
+              <td class="td-id"><%= lead.id %></td>
+              <td class="td-name"><%= lead.name %></td>
+              <td>
+                <span class="ch-badge ch-<%= lead.channel.toLowerCase() %>"><%= lead.channel %></span>
+              </td>
+              <td>
+                <% if (lead.package_interest) { %>
+                  <span class="pkg-badge"><%= lead.package_interest %></span>
+                <% } else { %>
+                  <span class="td-empty">—</span>
+                <% } %>
+              </td>
+              <td class="td-message" title="<%= lead.message %>"><%= lead.message %></td>
+              <td class="td-checkin">
+                <input type="date" class="inline-input checkin-input" value="<%= lead.checkin_date || '' %>" data-field="checkin_date" />
+              </td>
+              <td>
+                <input type="number" min="1" max="365" class="inline-input nights-input" value="<%= lead.nights || '' %>" placeholder="—" data-field="nights" />
+              </td>
+              <td>
+                <select class="status-select status-<%= lead.status %>" data-id="<%= lead.id %>">
+                  <option value="new"      <%= lead.status === 'new'       ? 'selected' : '' %>>New</option>
+                  <option value="follow-up"<%= lead.status === 'follow-up' ? 'selected' : '' %>>Follow-up</option>
+                  <option value="booked"   <%= lead.status === 'booked'    ? 'selected' : '' %>>Booked</option>
+                  <option value="lost"     <%= lead.status === 'lost'      ? 'selected' : '' %>>Lost</option>
+                </select>
+              </td>
+              <td class="td-date"><%= lead.created_at.substring(0,16) %></td>
+            </tr>
+            <% }); %>
+            <% if (leads.length === 0) { %>
+            <tr><td colspan="9" class="td-empty-row">No leads yet. Webhooks are ready.</td></tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast"></div>
+
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>
