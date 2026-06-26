@@ -40,6 +40,36 @@ router.get('/', (req, res) => {
   }
 });
 
+// Manual lead creation
+router.post('/leads', (req, res) => {
+  const { name, phone, channel, package_interest, checkin_date, nights, message } = req.body;
+
+  const validChannels = ['LINE', 'Facebook', 'Walk-in', 'Phone'];
+  if (!name || !name.trim()) return res.status(400).json({ error: 'Name is required' });
+  if (!validChannels.includes(channel)) return res.status(400).json({ error: 'Invalid channel' });
+  if (!message || !message.trim()) return res.status(400).json({ error: 'Message/note is required' });
+
+  try {
+    const db = getDb();
+    const result = db.prepare(`
+      INSERT INTO leads (name, phone, channel, sender_id, message, package_interest, checkin_date, nights, status)
+      VALUES (?, ?, ?, 'manual', ?, ?, ?, ?, 'new')
+    `).run([
+      name.trim(),
+      phone ? phone.trim() : null,
+      channel,
+      message.trim(),
+      package_interest || null,
+      checkin_date || null,
+      nights ? parseInt(nights) : null,
+    ]);
+    const lead = db.prepare('SELECT * FROM leads WHERE id = ?').get([result.lastInsertRowid]);
+    res.json({ ok: true, lead });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Update lead status
 router.post('/leads/:id/status', (req, res) => {
   const validStatuses = ['new', 'follow-up', 'booked', 'lost'];

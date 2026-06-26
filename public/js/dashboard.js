@@ -107,3 +107,64 @@ filterSearch.addEventListener('input',   applyFilters);
 
 /* ── Auto-refresh every 60 s ── */
 setTimeout(() => location.reload(), 60_000);
+
+/* ── Add Lead Modal ── */
+const overlay      = document.getElementById('modalOverlay');
+const addLeadBtn   = document.getElementById('addLeadBtn');
+const modalClose   = document.getElementById('modalClose');
+const modalCancel  = document.getElementById('modalCancel');
+const addLeadForm  = document.getElementById('addLeadForm');
+const modalSubmit  = document.getElementById('modalSubmit');
+
+function openModal() {
+  addLeadForm.reset();
+  addLeadForm.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+  overlay.hidden = false;
+  document.getElementById('fl-name').focus();
+}
+
+function closeModal() {
+  overlay.hidden = true;
+}
+
+addLeadBtn.addEventListener('click', openModal);
+modalClose.addEventListener('click', closeModal);
+modalCancel.addEventListener('click', closeModal);
+overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !overlay.hidden) closeModal(); });
+
+addLeadForm.addEventListener('submit', async function (e) {
+  e.preventDefault();
+
+  // Client-side validation
+  let valid = true;
+  ['fl-name', 'fl-channel', 'fl-message'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el.value.trim()) { el.classList.add('error'); valid = false; }
+    else el.classList.remove('error');
+  });
+  if (!valid) { showToast('Please fill in required fields', true); return; }
+
+  modalSubmit.disabled = true;
+  modalSubmit.textContent = 'Saving…';
+
+  const data = Object.fromEntries(new FormData(addLeadForm).entries());
+
+  try {
+    const res = await fetch('/leads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Server error');
+
+    closeModal();
+    showToast('Lead saved — refreshing…');
+    setTimeout(() => location.reload(), 900);
+  } catch (err) {
+    showToast(err.message, true);
+    modalSubmit.disabled = false;
+    modalSubmit.textContent = 'Save Lead';
+  }
+});
