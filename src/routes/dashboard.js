@@ -47,7 +47,6 @@ router.post('/leads', (req, res) => {
   const validChannels = ['LINE', 'Facebook', 'Walk-in', 'Phone'];
   if (!name || !name.trim()) return res.status(400).json({ error: 'Name is required' });
   if (!validChannels.includes(channel)) return res.status(400).json({ error: 'Invalid channel' });
-  if (!message || !message.trim()) return res.status(400).json({ error: 'Message/note is required' });
 
   try {
     const db = getDb();
@@ -58,7 +57,7 @@ router.post('/leads', (req, res) => {
       name.trim(),
       phone ? phone.trim() : null,
       channel,
-      message.trim(),
+      message ? message.trim() : '',
       package_interest || null,
       checkin_date || null,
       nights ? parseInt(nights) : null,

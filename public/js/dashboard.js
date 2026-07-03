@@ -138,7 +138,7 @@ addLeadForm.addEventListener('submit', async function (e) {
 
   // Client-side validation
   let valid = true;
-  ['fl-name', 'fl-channel', 'fl-message'].forEach(id => {
+  ['fl-name', 'fl-channel'].forEach(id => {
     const el = document.getElementById(id);
     if (!el.value.trim()) { el.classList.add('error'); valid = false; }
     else el.classList.remove('error');
