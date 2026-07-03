@@ -42,17 +42,18 @@ router.get('/', (req, res) => {
 
 // Manual lead creation
 router.post('/leads', (req, res) => {
-  const { name, phone, channel, package_interest, checkin_date, nights, message } = req.body;
+  const { name, phone, channel, package_interest, checkin_date, nights, message, agent } = req.body;
 
   const validChannels = ['LINE', 'Facebook', 'Walk-in', 'Phone'];
   if (!name || !name.trim()) return res.status(400).json({ error: 'Name is required' });
   if (!validChannels.includes(channel)) return res.status(400).json({ error: 'Invalid channel' });
+  if (!agent || !agent.trim()) return res.status(400).json({ error: 'Agent is required' });
 
   try {
     const db = getDb();
     const result = db.prepare(`
-      INSERT INTO leads (name, phone, channel, sender_id, message, package_interest, checkin_date, nights, status)
-      VALUES (?, ?, ?, 'manual', ?, ?, ?, ?, 'new')
+      INSERT INTO leads (name, phone, channel, sender_id, message, package_interest, checkin_date, nights, status, agent)
+      VALUES (?, ?, ?, 'manual', ?, ?, ?, ?, 'new', ?)
     `).run([
       name.trim(),
       phone ? phone.trim() : null,
@@ -61,6 +62,7 @@ router.post('/leads', (req, res) => {
       package_interest || null,
       checkin_date || null,
       nights ? parseInt(nights) : null,
+      agent.trim(),
     ]);
     const lead = db.prepare('SELECT * FROM leads WHERE id = ?').get([result.lastInsertRowid]);
     res.json({ ok: true, lead });
@@ -105,17 +107,18 @@ router.post('/leads/:id/details', (req, res) => {
 
 // Edit lead (full update)
 router.put('/leads/:id', (req, res) => {
-  const { name, phone, channel, package_interest, checkin_date, nights, message } = req.body;
+  const { name, phone, channel, package_interest, checkin_date, nights, message, agent } = req.body;
   const { id } = req.params;
   const validChannels = ['LINE', 'Facebook', 'Walk-in', 'Phone'];
 
   if (!name || !name.trim()) return res.status(400).json({ error: 'Name is required' });
   if (!validChannels.includes(channel)) return res.status(400).json({ error: 'Invalid channel' });
+  if (!agent || !agent.trim()) return res.status(400).json({ error: 'Agent is required' });
 
   try {
     const db = getDb();
     db.prepare(`
-      UPDATE leads SET name=?, phone=?, channel=?, package_interest=?, checkin_date=?, nights=?, message=?
+      UPDATE leads SET name=?, phone=?, channel=?, package_interest=?, checkin_date=?, nights=?, message=?, agent=?
       WHERE id=?
     `).run([
       name.trim(),
@@ -125,6 +128,7 @@ router.put('/leads/:id', (req, res) => {
       checkin_date || null,
       nights ? parseInt(nights) : null,
       message ? message.trim() : '',
+      agent.trim(),
       id,
     ]);
     res.json({ ok: true });

@@ -66,6 +66,13 @@ function initSchema() {
     console.log('[DB] Migrated to v2 (Walk-in/Phone channels + phone column)');
   }
 
+  // Migration v3: add agent column
+  const cols = db.prepare(`PRAGMA table_info(leads)`).all([]).map(r => r.name);
+  if (!cols.includes('agent')) {
+    db.exec(`ALTER TABLE leads ADD COLUMN agent TEXT DEFAULT NULL`);
+    console.log('[DB] Migrated to v3 (agent column)');
+  }
+
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_leads_created_at ON leads(created_at);
     CREATE INDEX IF NOT EXISTS idx_leads_channel ON leads(channel);

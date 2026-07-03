@@ -562,6 +562,7 @@ body {
 .btn-secondary:hover { border-color: var(--navy); color: var(--navy); }
 
 /* ─── Action Buttons ───────────────────────────────── */
+.td-agent  { font-size: .8rem; color: var(--text-muted); white-space: nowrap; }
 .td-actions { white-space: nowrap; text-align: right; width: 72px; }
 
 .btn-icon {

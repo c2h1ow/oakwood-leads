@@ -120,6 +120,7 @@ function openEditModal(btn) {
   document.getElementById('el-name').value        = btn.dataset.name;
   document.getElementById('el-phone').value       = btn.dataset.phone;
   document.getElementById('el-channel').value     = btn.dataset.channel;
+  document.getElementById('el-agent').value       = btn.dataset.agent;
   document.getElementById('el-package').value     = btn.dataset.package;
   document.getElementById('el-checkin').value     = btn.dataset.checkin;
   document.getElementById('el-nights').value      = btn.dataset.nights;
@@ -145,7 +146,7 @@ editLeadForm.addEventListener('submit', async function (e) {
   const id = document.getElementById('el-id').value;
 
   let valid = true;
-  ['el-name', 'el-channel'].forEach(elId => {
+  ['el-name', 'el-channel', 'el-agent'].forEach(elId => {
     const el = document.getElementById(elId);
     if (!el.value.trim()) { el.classList.add('error'); valid = false; }
     else el.classList.remove('error');
@@ -224,7 +225,7 @@ addLeadForm.addEventListener('submit', async function (e) {
 
   // Client-side validation
   let valid = true;
-  ['fl-name', 'fl-channel'].forEach(id => {
+  ['fl-name', 'fl-channel', 'fl-agent'].forEach(id => {
     const el = document.getElementById(id);
     if (!el.value.trim()) { el.classList.add('error'); valid = false; }
     else el.classList.remove('error');

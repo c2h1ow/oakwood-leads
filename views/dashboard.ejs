@@ -177,6 +177,7 @@
               <th>Check-in</th>
               <th>Nights</th>
               <th>Status</th>
+              <th>Agent</th>
               <th>Received</th>
               <th></th>
             </tr>
@@ -211,6 +212,7 @@
                   <option value="lost"     <%= lead.status === 'lost'      ? 'selected' : '' %>>Lost</option>
                 </select>
               </td>
+              <td class="td-agent"><%= lead.agent || '—' %></td>
               <td class="td-date"><%= lead.created_at.substring(0,16) %></td>
               <td class="td-actions">
                 <button class="btn-icon btn-edit" title="Edit" data-id="<%= lead.id %>"
@@ -220,13 +222,14 @@
                   data-package="<%= lead.package_interest || '' %>"
                   data-checkin="<%= lead.checkin_date || '' %>"
                   data-nights="<%= lead.nights || '' %>"
-                  data-message="<%= lead.message || '' %>">✏️</button>
+                  data-message="<%= lead.message || '' %>"
+                  data-agent="<%= lead.agent || '' %>">✏️</button>
                 <button class="btn-icon btn-delete" title="Delete" data-id="<%= lead.id %>" data-name="<%= lead.name %>">🗑️</button>
               </td>
             </tr>
             <% }); %>
             <% if (leads.length === 0) { %>
-            <tr><td colspan="10" class="td-empty-row">No leads yet. Webhooks are ready.</td></tr>
+            <tr><td colspan="11" class="td-empty-row">No leads yet. Webhooks are ready.</td></tr>
             <% } %>
           </tbody>
         </table>
@@ -266,6 +269,13 @@
               <option value="Phone">Phone</option>
             </select>
           </div>
+          <div class="form-group form-group--grow">
+            <label class="form-label" for="el-agent">คนรับจอง <span class="req">*</span></label>
+            <input type="text" id="el-agent" name="agent" class="form-input" placeholder="ชื่อพนักงาน" required />
+          </div>
+        </div>
+
+        <div class="form-row">
           <div class="form-group form-group--grow">
             <label class="form-label" for="el-package">Package Interest</label>
             <select id="el-package" name="package_interest" class="form-input">
@@ -338,6 +348,13 @@
               <option value="Phone">Phone</option>
             </select>
           </div>
+          <div class="form-group form-group--grow">
+            <label class="form-label" for="fl-agent">คนรับจอง <span class="req">*</span></label>
+            <input type="text" id="fl-agent" name="agent" class="form-input" placeholder="ชื่อพนักงาน" required />
+          </div>
+        </div>
+
+        <div class="form-row">
           <div class="form-group form-group--grow">
             <label class="form-label" for="fl-package">Package Interest</label>
             <select id="fl-package" name="package_interest" class="form-input">
