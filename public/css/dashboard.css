@@ -561,5 +561,22 @@ body {
 }
 .btn-secondary:hover { border-color: var(--navy); color: var(--navy); }
 
+/* ─── Action Buttons ───────────────────────────────── */
+.td-actions { white-space: nowrap; text-align: right; width: 72px; }
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: .95rem;
+  padding: 4px 5px;
+  border-radius: var(--radius-sm);
+  opacity: .55;
+  transition: opacity .15s, background .15s;
+  line-height: 1;
+}
+.btn-icon:hover { opacity: 1; background: var(--bg); }
+.btn-delete:hover { background: #FEE2E2; }
+
 /* ─── Misc ─────────────────────────────────────────── */
 .empty-hint { color: var(--text-light); font-style: italic; font-size: .82rem; }

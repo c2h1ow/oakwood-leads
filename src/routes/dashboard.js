@@ -103,6 +103,47 @@ router.post('/leads/:id/details', (req, res) => {
   }
 });
 
+// Edit lead (full update)
+router.put('/leads/:id', (req, res) => {
+  const { name, phone, channel, package_interest, checkin_date, nights, message } = req.body;
+  const { id } = req.params;
+  const validChannels = ['LINE', 'Facebook', 'Walk-in', 'Phone'];
+
+  if (!name || !name.trim()) return res.status(400).json({ error: 'Name is required' });
+  if (!validChannels.includes(channel)) return res.status(400).json({ error: 'Invalid channel' });
+
+  try {
+    const db = getDb();
+    db.prepare(`
+      UPDATE leads SET name=?, phone=?, channel=?, package_interest=?, checkin_date=?, nights=?, message=?
+      WHERE id=?
+    `).run([
+      name.trim(),
+      phone ? phone.trim() : null,
+      channel,
+      package_interest || null,
+      checkin_date || null,
+      nights ? parseInt(nights) : null,
+      message ? message.trim() : '',
+      id,
+    ]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete lead
+router.delete('/leads/:id', (req, res) => {
+  try {
+    const db = getDb();
+    db.prepare('DELETE FROM leads WHERE id = ?').run([req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // API: leads JSON
 router.get('/api/leads', (req, res) => {
   const db = getDb();

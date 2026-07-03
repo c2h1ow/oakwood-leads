@@ -178,6 +178,7 @@
               <th>Nights</th>
               <th>Status</th>
               <th>Received</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -211,10 +212,21 @@
                 </select>
               </td>
               <td class="td-date"><%= lead.created_at.substring(0,16) %></td>
+              <td class="td-actions">
+                <button class="btn-icon btn-edit" title="Edit" data-id="<%= lead.id %>"
+                  data-name="<%= lead.name %>"
+                  data-phone="<%= lead.phone || '' %>"
+                  data-channel="<%= lead.channel %>"
+                  data-package="<%= lead.package_interest || '' %>"
+                  data-checkin="<%= lead.checkin_date || '' %>"
+                  data-nights="<%= lead.nights || '' %>"
+                  data-message="<%= lead.message || '' %>">✏️</button>
+                <button class="btn-icon btn-delete" title="Delete" data-id="<%= lead.id %>" data-name="<%= lead.name %>">🗑️</button>
+              </td>
             </tr>
             <% }); %>
             <% if (leads.length === 0) { %>
-            <tr><td colspan="9" class="td-empty-row">No leads yet. Webhooks are ready.</td></tr>
+            <tr><td colspan="10" class="td-empty-row">No leads yet. Webhooks are ready.</td></tr>
             <% } %>
           </tbody>
         </table>
@@ -222,6 +234,78 @@
     </section>
 
   </main>
+
+  <!-- EDIT LEAD MODAL -->
+  <div id="editModalOverlay" class="modal-overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+      <div class="modal-header">
+        <h2 class="modal-title" id="editModalTitle">Edit Lead</h2>
+        <button class="modal-close" id="editModalClose">&times;</button>
+      </div>
+      <form id="editLeadForm" class="modal-body" novalidate>
+        <input type="hidden" id="el-id" name="id" />
+
+        <div class="form-row">
+          <div class="form-group form-group--grow">
+            <label class="form-label" for="el-name">Name <span class="req">*</span></label>
+            <input type="text" id="el-name" name="name" class="form-input" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="el-phone">Phone</label>
+            <input type="tel" id="el-phone" name="phone" class="form-input" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="el-channel">Channel <span class="req">*</span></label>
+            <select id="el-channel" name="channel" class="form-input" required>
+              <option value="LINE">LINE</option>
+              <option value="Facebook">Facebook</option>
+              <option value="Walk-in">Walk-in</option>
+              <option value="Phone">Phone</option>
+            </select>
+          </div>
+          <div class="form-group form-group--grow">
+            <label class="form-label" for="el-package">Package Interest</label>
+            <select id="el-package" name="package_interest" class="form-input">
+              <option value="">None / Unknown</option>
+              <option value="Room">Room</option>
+              <option value="Long Stay">Long Stay</option>
+              <option value="Medical Stay">Medical Stay</option>
+              <option value="Meeting Room">Meeting Room</option>
+              <option value="Sunday Brunch">Sunday Brunch</option>
+              <option value="บุฟเฟต์อาหารเช้า">บุฟเฟต์อาหารเช้า</option>
+              <option value="บุฟเฟต์ตลาดน้ำ">บุฟเฟต์ตลาดน้ำ</option>
+              <option value="บุฟเฟต์ข้าวต้ม">บุฟเฟต์ข้าวต้ม</option>
+              <option value="Friday Sky Cozy">Friday Sky Cozy</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="el-checkin">Check-in Date</label>
+            <input type="date" id="el-checkin" name="checkin_date" class="form-input" />
+          </div>
+          <div class="form-group form-group--sm">
+            <label class="form-label" for="el-nights">Nights</label>
+            <input type="number" id="el-nights" name="nights" class="form-input" min="1" max="365" placeholder="—" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="el-message">Message / Note</label>
+          <textarea id="el-message" name="message" class="form-input form-textarea" rows="3"></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="editModalCancel">Cancel</button>
+          <button type="submit" class="btn-primary" id="editModalSubmit">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- ADD LEAD MODAL -->
   <div id="modalOverlay" class="modal-overlay" hidden>

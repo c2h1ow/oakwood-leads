@@ -108,6 +108,92 @@ filterSearch.addEventListener('input',   applyFilters);
 /* ── Auto-refresh every 60 s ── */
 setTimeout(() => location.reload(), 60_000);
 
+/* ── Edit Modal ── */
+const editOverlay     = document.getElementById('editModalOverlay');
+const editModalClose  = document.getElementById('editModalClose');
+const editModalCancel = document.getElementById('editModalCancel');
+const editLeadForm    = document.getElementById('editLeadForm');
+const editModalSubmit = document.getElementById('editModalSubmit');
+
+function openEditModal(btn) {
+  document.getElementById('el-id').value          = btn.dataset.id;
+  document.getElementById('el-name').value        = btn.dataset.name;
+  document.getElementById('el-phone').value       = btn.dataset.phone;
+  document.getElementById('el-channel').value     = btn.dataset.channel;
+  document.getElementById('el-package').value     = btn.dataset.package;
+  document.getElementById('el-checkin').value     = btn.dataset.checkin;
+  document.getElementById('el-nights').value      = btn.dataset.nights;
+  document.getElementById('el-message').value     = btn.dataset.message;
+  editLeadForm.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+  editOverlay.hidden = false;
+  document.getElementById('el-name').focus();
+}
+
+function closeEditModal() { editOverlay.hidden = true; }
+
+editModalClose.addEventListener('click', closeEditModal);
+editModalCancel.addEventListener('click', closeEditModal);
+editOverlay.addEventListener('click', e => { if (e.target === editOverlay) closeEditModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !editOverlay.hidden) closeEditModal(); });
+
+document.querySelectorAll('.btn-edit').forEach(btn => {
+  btn.addEventListener('click', () => openEditModal(btn));
+});
+
+editLeadForm.addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const id = document.getElementById('el-id').value;
+
+  let valid = true;
+  ['el-name', 'el-channel'].forEach(elId => {
+    const el = document.getElementById(elId);
+    if (!el.value.trim()) { el.classList.add('error'); valid = false; }
+    else el.classList.remove('error');
+  });
+  if (!valid) { showToast('Please fill in required fields', true); return; }
+
+  editModalSubmit.disabled = true;
+  editModalSubmit.textContent = 'Saving…';
+
+  const data = Object.fromEntries(new FormData(editLeadForm).entries());
+
+  try {
+    const res = await fetch(`/leads/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Server error');
+    closeEditModal();
+    showToast('Lead updated — refreshing…');
+    setTimeout(() => location.reload(), 900);
+  } catch (err) {
+    showToast(err.message, true);
+    editModalSubmit.disabled = false;
+    editModalSubmit.textContent = 'Save Changes';
+  }
+});
+
+/* ── Delete ── */
+document.querySelectorAll('.btn-delete').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const id   = btn.dataset.id;
+    const name = btn.dataset.name;
+    if (!confirm(`ลบ lead "${name}" ใช่ไหม?`)) return;
+
+    try {
+      const res = await fetch(`/leads/${id}`, { method: 'DELETE' });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Server error');
+      showToast('ลบแล้ว — refreshing…');
+      setTimeout(() => location.reload(), 700);
+    } catch (err) {
+      showToast(err.message, true);
+    }
+  });
+});
+
 /* ── Add Lead Modal ── */
 const overlay      = document.getElementById('modalOverlay');
 const addLeadBtn   = document.getElementById('addLeadBtn');
