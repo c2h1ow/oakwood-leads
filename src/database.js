@@ -73,6 +73,34 @@ function initSchema() {
     console.log('[DB] Migrated to v3 (agent column)');
   }
 
+  // Migration v4: widen channel CHECK to support new channel names
+  const tableSqlV4 = db.prepare(`SELECT sql FROM sqlite_master WHERE type='table' AND name='leads'`).get([]).sql;
+  if (!tableSqlV4.includes('Facebook - Oakwood')) {
+    db.exec(`ALTER TABLE leads RENAME TO leads_old_v4`);
+    db.exec(`
+      CREATE TABLE leads (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        channel TEXT NOT NULL,
+        phone TEXT DEFAULT NULL,
+        sender_id TEXT,
+        message TEXT NOT NULL DEFAULT '',
+        package_interest TEXT DEFAULT NULL,
+        checkin_date TEXT DEFAULT NULL,
+        nights INTEGER DEFAULT NULL,
+        status TEXT NOT NULL DEFAULT 'new' CHECK(status IN ('new', 'follow-up', 'booked', 'lost')),
+        agent TEXT DEFAULT NULL,
+        created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+      )
+    `);
+    db.exec(`
+      INSERT INTO leads (id,name,channel,phone,sender_id,message,package_interest,checkin_date,nights,status,agent,created_at)
+        SELECT id,name,channel,phone,sender_id,message,package_interest,checkin_date,nights,status,agent,created_at FROM leads_old_v4
+    `);
+    db.exec(`DROP TABLE leads_old_v4`);
+    console.log('[DB] Migrated to v4 (flexible channel names)');
+  }
+
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_leads_created_at ON leads(created_at);
     CREATE INDEX IF NOT EXISTS idx_leads_channel ON leads(channel);
