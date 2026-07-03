@@ -48,8 +48,18 @@ async function handleLineEvents(events, channelName, accessTokenEnvKey) {
         }
       }
 
-      const packageInterest = detectPackage(messageText);
       const db = getDb();
+
+      // Skip if lead from this sender already exists on this channel
+      const existing = db.prepare(
+        `SELECT id FROM leads WHERE sender_id = ? AND channel = ? LIMIT 1`
+      ).get([senderId, channelName]);
+      if (existing) {
+        console.log(`[LINE] Skipping duplicate lead from ${senderId} (${channelName})`);
+        continue;
+      }
+
+      const packageInterest = detectPackage(messageText);
       const result = db.prepare(`
         INSERT INTO leads (name, channel, sender_id, message, package_interest, created_at)
         VALUES (?, ?, ?, ?, ?, ?)
