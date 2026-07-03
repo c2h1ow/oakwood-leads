@@ -1,6 +1,6 @@
 const express = require('express');
 const crypto = require('crypto');
-const { getDb } = require('../database');
+const { pool } = require('../database');
 const { detectPackage } = require('../packageDetector');
 const { sendNewLeadNotification } = require('../mailer');
 
@@ -29,9 +29,16 @@ async function handleLineEvents(events, channelName, accessTokenEnvKey) {
 
       const senderId = event.source?.userId || 'unknown';
       const messageText = event.message.text || '';
-      const timestamp = event.timestamp
-        ? new Date(event.timestamp).toISOString().replace('T', ' ').substring(0, 19)
-        : new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+      // Skip if lead from this sender already exists on this channel
+      const existing = await pool.query(
+        `SELECT id FROM leads WHERE sender_id = $1 AND channel = $2 LIMIT 1`,
+        [senderId, channelName]
+      );
+      if (existing.rows.length > 0) {
+        console.log(`[LINE] Skipping duplicate lead from ${senderId} (${channelName})`);
+        continue;
+      }
 
       let displayName = 'LINE User';
       const accessToken = process.env[accessTokenEnvKey];
@@ -48,24 +55,14 @@ async function handleLineEvents(events, channelName, accessTokenEnvKey) {
         }
       }
 
-      const db = getDb();
-
-      // Skip if lead from this sender already exists on this channel
-      const existing = db.prepare(
-        `SELECT id FROM leads WHERE sender_id = ? AND channel = ? LIMIT 1`
-      ).get([senderId, channelName]);
-      if (existing) {
-        console.log(`[LINE] Skipping duplicate lead from ${senderId} (${channelName})`);
-        continue;
-      }
-
       const packageInterest = detectPackage(messageText);
-      const result = db.prepare(`
-        INSERT INTO leads (name, channel, sender_id, message, package_interest, created_at)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `).run([displayName, channelName, senderId, messageText, packageInterest, timestamp]);
+      const result = await pool.query(`
+        INSERT INTO leads (name, channel, sender_id, message, package_interest)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING *
+      `, [displayName, channelName, senderId, messageText, packageInterest]);
 
-      const lead = db.prepare('SELECT * FROM leads WHERE id = ?').get([result.lastInsertRowid]);
+      const lead = result.rows[0];
       console.log(`[LINE] New lead #${lead.id} from ${displayName} via ${channelName}`);
       sendNewLeadNotification(lead);
     } catch (err) {

@@ -1,34 +1,31 @@
 const express = require('express');
-const { getDb } = require('../database');
+const { pool } = require('../database');
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const db = getDb();
+    const [
+      todayRes, byChannelRes, byPackageRes, byStatusRes,
+      totalRes, bookedRes, leadsRes
+    ] = await Promise.all([
+      pool.query(`SELECT COUNT(*) as count FROM leads WHERE created_at::date = CURRENT_DATE`),
+      pool.query(`SELECT channel, COUNT(*) as count FROM leads GROUP BY channel`),
+      pool.query(`SELECT COALESCE(package_interest, 'Unknown') as package, COUNT(*) as count FROM leads GROUP BY package_interest ORDER BY count DESC`),
+      pool.query(`SELECT status, COUNT(*) as count FROM leads GROUP BY status`),
+      pool.query(`SELECT COUNT(*) as count FROM leads`),
+      pool.query(`SELECT COUNT(*) as count FROM leads WHERE status = 'booked'`),
+      pool.query(`SELECT * FROM leads ORDER BY created_at DESC LIMIT 100`),
+    ]);
 
-    const totalToday = db.prepare(
-      `SELECT COUNT(*) as count FROM leads WHERE date(created_at) = date('now', 'localtime')`
-    ).get([]).count;
-
-    const byChannel = db.prepare(
-      `SELECT channel, COUNT(*) as count FROM leads GROUP BY channel`
-    ).all([]);
-
-    const byPackage = db.prepare(
-      `SELECT COALESCE(package_interest, 'Unknown') as package, COUNT(*) as count
-       FROM leads GROUP BY package_interest ORDER BY count DESC`
-    ).all([]);
-
-    const byStatus = db.prepare(
-      `SELECT status, COUNT(*) as count FROM leads GROUP BY status`
-    ).all([]);
-
-    const totalLeads  = db.prepare(`SELECT COUNT(*) as count FROM leads`).get([]).count;
-    const bookedLeads = db.prepare(`SELECT COUNT(*) as count FROM leads WHERE status = 'booked'`).get([]).count;
+    const totalToday = parseInt(todayRes.rows[0].count);
+    const byChannel = byChannelRes.rows;
+    const byPackage = byPackageRes.rows;
+    const byStatus = byStatusRes.rows;
+    const totalLeads = parseInt(totalRes.rows[0].count);
+    const bookedLeads = parseInt(bookedRes.rows[0].count);
     const conversionRate = totalLeads > 0 ? Math.round((bookedLeads / totalLeads) * 100) : 0;
-
-    const leads = db.prepare(`SELECT * FROM leads ORDER BY created_at DESC LIMIT 100`).all([]);
+    const leads = leadsRes.rows;
 
     res.render('dashboard', {
       totalToday, byChannel, byPackage, byStatus,
@@ -41,7 +38,7 @@ router.get('/', (req, res) => {
 });
 
 // Manual lead creation
-router.post('/leads', (req, res) => {
+router.post('/leads', async (req, res) => {
   const { name, phone, channel, package_interest, checkin_date, nights, message, agent } = req.body;
 
   const validChannels = ['Facebook - Oakwood', 'Facebook - Charm', 'Facebook - Zodiac', 'Line - Oakwood', 'Line - Charm', 'Telephone', 'Walk-in'];
@@ -50,11 +47,11 @@ router.post('/leads', (req, res) => {
   if (!agent || !agent.trim()) return res.status(400).json({ error: 'Agent is required' });
 
   try {
-    const db = getDb();
-    const result = db.prepare(`
+    const result = await pool.query(`
       INSERT INTO leads (name, phone, channel, sender_id, message, package_interest, checkin_date, nights, status, agent)
-      VALUES (?, ?, ?, 'manual', ?, ?, ?, ?, 'new', ?)
-    `).run([
+      VALUES ($1, $2, $3, 'manual', $4, $5, $6, $7, 'new', $8)
+      RETURNING *
+    `, [
       name.trim(),
       phone ? phone.trim() : null,
       channel,
@@ -64,15 +61,14 @@ router.post('/leads', (req, res) => {
       nights ? parseInt(nights) : null,
       agent.trim(),
     ]);
-    const lead = db.prepare('SELECT * FROM leads WHERE id = ?').get([result.lastInsertRowid]);
-    res.json({ ok: true, lead });
+    res.json({ ok: true, lead: result.rows[0] });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 // Update lead status
-router.post('/leads/:id/status', (req, res) => {
+router.post('/leads/:id/status', async (req, res) => {
   const validStatuses = ['new', 'follow-up', 'booked', 'lost'];
   const { status } = req.body;
   const { id } = req.params;
@@ -82,8 +78,7 @@ router.post('/leads/:id/status', (req, res) => {
   }
 
   try {
-    const db = getDb();
-    db.prepare('UPDATE leads SET status = ? WHERE id = ?').run([status, id]);
+    await pool.query('UPDATE leads SET status = $1 WHERE id = $2', [status, id]);
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -91,14 +86,15 @@ router.post('/leads/:id/status', (req, res) => {
 });
 
 // Update lead details (checkin, nights, package)
-router.post('/leads/:id/details', (req, res) => {
+router.post('/leads/:id/details', async (req, res) => {
   const { checkin_date, nights, package_interest } = req.body;
   const { id } = req.params;
 
   try {
-    const db = getDb();
-    db.prepare(`UPDATE leads SET checkin_date = ?, nights = ?, package_interest = ? WHERE id = ?`)
-      .run([checkin_date || null, nights ? parseInt(nights) : null, package_interest || null, id]);
+    await pool.query(
+      `UPDATE leads SET checkin_date = $1, nights = $2, package_interest = $3 WHERE id = $4`,
+      [checkin_date || null, nights ? parseInt(nights) : null, package_interest || null, id]
+    );
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -106,7 +102,7 @@ router.post('/leads/:id/details', (req, res) => {
 });
 
 // Edit lead (full update)
-router.put('/leads/:id', (req, res) => {
+router.put('/leads/:id', async (req, res) => {
   const { name, phone, channel, package_interest, checkin_date, nights, message, agent } = req.body;
   const { id } = req.params;
   const validChannels = ['Facebook - Oakwood', 'Facebook - Charm', 'Facebook - Zodiac', 'Line - Oakwood', 'Line - Charm', 'Telephone', 'Walk-in'];
@@ -116,11 +112,11 @@ router.put('/leads/:id', (req, res) => {
   if (!agent || !agent.trim()) return res.status(400).json({ error: 'Agent is required' });
 
   try {
-    const db = getDb();
-    db.prepare(`
-      UPDATE leads SET name=?, phone=?, channel=?, package_interest=?, checkin_date=?, nights=?, message=?, agent=?
-      WHERE id=?
-    `).run([
+    await pool.query(`
+      UPDATE leads SET name=$1, phone=$2, channel=$3, package_interest=$4,
+        checkin_date=$5, nights=$6, message=$7, agent=$8
+      WHERE id=$9
+    `, [
       name.trim(),
       phone ? phone.trim() : null,
       channel,
@@ -138,10 +134,9 @@ router.put('/leads/:id', (req, res) => {
 });
 
 // Delete lead
-router.delete('/leads/:id', (req, res) => {
+router.delete('/leads/:id', async (req, res) => {
   try {
-    const db = getDb();
-    db.prepare('DELETE FROM leads WHERE id = ?').run([req.params.id]);
+    await pool.query('DELETE FROM leads WHERE id = $1', [req.params.id]);
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -149,10 +144,9 @@ router.delete('/leads/:id', (req, res) => {
 });
 
 // API: leads JSON
-router.get('/api/leads', (req, res) => {
-  const db = getDb();
-  const leads = db.prepare('SELECT * FROM leads ORDER BY created_at DESC').all([]);
-  res.json(leads);
+router.get('/api/leads', async (req, res) => {
+  const result = await pool.query('SELECT * FROM leads ORDER BY created_at DESC');
+  res.json(result.rows);
 });
 
 module.exports = router;

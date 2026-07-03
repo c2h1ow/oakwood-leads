@@ -1,5 +1,5 @@
 const express = require('express');
-const { getDb } = require('../database');
+const { pool } = require('../database');
 const { detectPackage } = require('../packageDetector');
 const { sendNewLeadNotification } = require('../mailer');
 
@@ -32,9 +32,13 @@ router.post('/webhook', async (req, res) => {
 
         const senderId = event.sender?.id || 'unknown';
         const messageText = event.message.text || '';
-        const timestamp = event.timestamp
-          ? new Date(event.timestamp).toISOString().replace('T', ' ').substring(0, 19)
-          : new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+        // Skip duplicate
+        const existing = await pool.query(
+          `SELECT id FROM leads WHERE sender_id = $1 AND channel = 'Facebook - Oakwood' LIMIT 1`,
+          [senderId]
+        );
+        if (existing.rows.length > 0) continue;
 
         let displayName = 'Facebook User';
         if (process.env.FB_PAGE_ACCESS_TOKEN && senderId !== 'unknown') {
@@ -51,13 +55,13 @@ router.post('/webhook', async (req, res) => {
         }
 
         const packageInterest = detectPackage(messageText);
-        const db = getDb();
-        const result = db.prepare(`
-          INSERT INTO leads (name, channel, sender_id, message, package_interest, created_at)
-          VALUES (?, 'Facebook', ?, ?, ?, ?)
-        `).run([displayName, senderId, messageText, packageInterest, timestamp]);
+        const result = await pool.query(`
+          INSERT INTO leads (name, channel, sender_id, message, package_interest)
+          VALUES ($1, 'Facebook - Oakwood', $2, $3, $4)
+          RETURNING *
+        `, [displayName, senderId, messageText, packageInterest]);
 
-        const lead = db.prepare('SELECT * FROM leads WHERE id = ?').get([result.lastInsertRowid]);
+        const lead = result.rows[0];
         console.log(`[Facebook] New lead #${lead.id} from ${displayName}`);
         sendNewLeadNotification(lead);
       } catch (err) {

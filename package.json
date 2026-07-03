@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "express": "^4.18.2",
-    "node-sqlite3-wasm": "^0.8.25",
+    "pg": "^8.11.3",
     "nodemailer": "^6.9.9",
     "axios": "^1.6.7",
     "dotenv": "^16.4.1",
