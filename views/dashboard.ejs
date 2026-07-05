@@ -189,7 +189,18 @@
             <% leads.forEach(function(lead) { %>
             <tr data-channel="<%= lead.channel %>" data-status="<%= lead.status %>" data-id="<%= lead.id %>">
               <td class="td-id"><%= lead.id %></td>
-              <td class="td-name"><%= lead.name %></td>
+              <td class="td-name">
+                <button class="btn-icon btn-edit" title="Edit" data-id="<%= lead.id %>"
+                  data-name="<%= lead.name %>"
+                  data-phone="<%= lead.phone || '' %>"
+                  data-channel="<%= lead.channel %>"
+                  data-package="<%= lead.package_interest || '' %>"
+                  data-checkin="<%= lead.checkin_date || '' %>"
+                  data-nights="<%= lead.nights || '' %>"
+                  data-message="<%= lead.message || '' %>"
+                  data-agent="<%= lead.agent || '' %>">✏️</button>
+                <%= lead.name %>
+              </td>
               <td>
                 <span class="ch-badge ch-<%= lead.channel.toLowerCase() %>"><%= lead.channel %></span>
               </td>
@@ -218,15 +229,6 @@
               <td class="td-agent"><%= lead.agent || '—' %></td>
               <td class="td-date"><%= new Date(lead.created_at).toISOString().substring(0,16).replace('T',' ') %></td>
               <td class="td-actions">
-                <button class="btn-icon btn-edit" title="Edit" data-id="<%= lead.id %>"
-                  data-name="<%= lead.name %>"
-                  data-phone="<%= lead.phone || '' %>"
-                  data-channel="<%= lead.channel %>"
-                  data-package="<%= lead.package_interest || '' %>"
-                  data-checkin="<%= lead.checkin_date || '' %>"
-                  data-nights="<%= lead.nights || '' %>"
-                  data-message="<%= lead.message || '' %>"
-                  data-agent="<%= lead.agent || '' %>">✏️</button>
                 <button class="btn-icon btn-delete" title="Delete" data-id="<%= lead.id %>" data-name="<%= lead.name %>">🗑️</button>
               </td>
             </tr>
