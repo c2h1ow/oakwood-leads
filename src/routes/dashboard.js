@@ -7,7 +7,7 @@ router.get('/', async (req, res) => {
   try {
     const [
       todayRes, byChannelRes, byPackageRes, byStatusRes,
-      totalRes, bookedRes, leadsRes
+      totalRes, bookedRes, leadsRes, byHourRes
     ] = await Promise.all([
       pool.query(`SELECT COUNT(*) as count FROM leads WHERE created_at::date = CURRENT_DATE`),
       pool.query(`SELECT channel, COUNT(*) as count FROM leads GROUP BY channel`),
@@ -16,6 +16,7 @@ router.get('/', async (req, res) => {
       pool.query(`SELECT COUNT(*) as count FROM leads`),
       pool.query(`SELECT COUNT(*) as count FROM leads WHERE status = 'booked'`),
       pool.query(`SELECT * FROM leads ORDER BY created_at DESC LIMIT 100`),
+      pool.query(`SELECT EXTRACT(HOUR FROM created_at AT TIME ZONE 'Asia/Bangkok') as hour, COUNT(*) as count FROM leads GROUP BY hour ORDER BY hour`),
     ]);
 
     const totalToday = parseInt(todayRes.rows[0].count);
@@ -26,10 +27,14 @@ router.get('/', async (req, res) => {
     const bookedLeads = parseInt(bookedRes.rows[0].count);
     const conversionRate = totalLeads > 0 ? Math.round((bookedLeads / totalLeads) * 100) : 0;
     const leads = leadsRes.rows;
+    const byHour = Array.from({length: 24}, (_, h) => {
+      const row = byHourRes.rows.find(r => parseInt(r.hour) === h);
+      return { hour: h, count: row ? parseInt(row.count) : 0 };
+    });
 
     res.render('dashboard', {
       totalToday, byChannel, byPackage, byStatus,
-      totalLeads, bookedLeads, conversionRate, leads,
+      totalLeads, bookedLeads, conversionRate, leads, byHour,
     });
   } catch (err) {
     console.error('[Dashboard]', err);
