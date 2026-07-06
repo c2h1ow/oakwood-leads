@@ -171,7 +171,8 @@
         </form>
         <% if (rangeFrom && rangeTo) { %>
           <div style="margin-top:14px;">
-            <p style="font-size:15px; color:#333;">ช่วง <strong><%= rangeFrom %></strong> ถึง <strong><%= rangeTo %></strong>: มี lead เข้ามาทั้งหมด <strong style="color:#6366f1; font-size:20px;"><%= rangeTotal %></strong> รายการ</p>
+            <% const fmtDate = d => d.split('-').reverse().join('/'); %>
+            <p style="font-size:15px; color:#333;">ช่วง <strong><%= fmtDate(rangeFrom) %></strong> ถึง <strong><%= fmtDate(rangeTo) %></strong>: มี lead เข้ามาทั้งหมด <strong style="color:#6366f1; font-size:20px;"><%= rangeTotal %></strong> รายการ</p>
             <% if (rangeByChannel.length > 0) { %>
               <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
                 <% rangeByChannel.sort((a,b) => parseInt(b.count) - parseInt(a.count)).forEach(function(r) { %>
@@ -230,7 +231,7 @@
           <tbody>
             <% leads.forEach(function(lead) { %>
             <tr data-channel="<%= lead.channel %>" data-status="<%= lead.status %>" data-id="<%= lead.id %>">
-              <td class="td-date"><%= new Date(lead.created_at).toLocaleString('th-TH', {timeZone:'Asia/Bangkok', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false}) %></td>
+              <td class="td-date"><%= new Date(new Date(lead.created_at).toLocaleString('en-US', {timeZone:'Asia/Bangkok'})).toLocaleDateString('en-GB').replace(/\//g,'/') + ' ' + new Date(new Date(lead.created_at).toLocaleString('en-US', {timeZone:'Asia/Bangkok'})).toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit',hour12:false}) %></td>
               <td class="td-id"><%= lead.id %></td>
               <td class="td-name">
                 <button class="btn-icon btn-edit" title="Edit" data-id="<%= lead.id %>"
