@@ -112,6 +112,23 @@
       </div>
 
       <!-- By Status -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Status Breakdown</h2>
+        </div>
+        <div class="card-body">
+          <div class="status-pills">
+            <% const statusMap = {}; byStatus.forEach(r => statusMap[r.status] = r.count); %>
+            <% ['new','follow-up','booked','lost'].forEach(function(s) { %>
+              <div class="status-pill-card status-<%= s %>">
+                <div class="pill-count"><%= statusMap[s] || 0 %></div>
+                <div class="pill-label"><%= s.charAt(0).toUpperCase() + s.slice(1) %></div>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+      </div>
+
       <!-- Peak Hours -->
       <div class="card" style="grid-column: 1 / -1;">
         <div class="card-header">
@@ -131,23 +148,6 @@
           <% if (peakHour && peakHour.count > 0) { %>
             <p style="margin-top:8px; font-size:13px; color:#555;">ช่วงเวลาที่คนทักมาบ่อยที่สุด: <strong><%= peakHour.hour %>:00–<%= peakHour.hour %>:59 น.</strong> (<%= peakHour.count %> leads)</p>
           <% } %>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">Status Breakdown</h2>
-        </div>
-        <div class="card-body">
-          <div class="status-pills">
-            <% const statusMap = {}; byStatus.forEach(r => statusMap[r.status] = r.count); %>
-            <% ['new','follow-up','booked','lost'].forEach(function(s) { %>
-              <div class="status-pill-card status-<%= s %>">
-                <div class="pill-count"><%= statusMap[s] || 0 %></div>
-                <div class="pill-label"><%= s.charAt(0).toUpperCase() + s.slice(1) %></div>
-              </div>
-            <% }); %>
-          </div>
         </div>
       </div>
 
