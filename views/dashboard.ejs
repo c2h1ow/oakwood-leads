@@ -70,28 +70,18 @@
           <h2 class="card-title">Leads by Channel</h2>
         </div>
         <div class="card-body">
-          <% const lineCount = byChannel.filter(r => r.channel.startsWith('Line')).reduce((s,r) => s + parseInt(r.count), 0); %>
-          <% const fbCount = byChannel.filter(r => r.channel.startsWith('Facebook')).reduce((s,r) => s + parseInt(r.count), 0); %>
-          <% const chTotal = lineCount + fbCount || 1; %>
+          <% const chTotal = byChannel.reduce((s,r) => s + parseInt(r.count), 0) || 1; %>
           <div class="channel-bars">
-            <div class="channel-row">
-              <div class="channel-label">
-                <span class="ch-dot ch-line"></span>LINE
+            <% byChannel.forEach(function(r) { %>
+              <% const chClass = r.channel.startsWith('Line') ? 'bar-line' : r.channel.startsWith('Facebook') ? 'bar-fb' : 'bar-pkg'; %>
+              <div class="channel-row">
+                <div class="channel-label"><%= r.channel %></div>
+                <div class="bar-track">
+                  <div class="bar-fill <%= chClass %>" style="width:<%= Math.round(parseInt(r.count)/chTotal*100) %>%"></div>
+                </div>
+                <div class="channel-count"><%= r.count %></div>
               </div>
-              <div class="bar-track">
-                <div class="bar-fill bar-line" style="width:<%= Math.round(lineCount/chTotal*100) %>%"></div>
-              </div>
-              <div class="channel-count"><%= lineCount %></div>
-            </div>
-            <div class="channel-row">
-              <div class="channel-label">
-                <span class="ch-dot ch-fb"></span>Facebook
-              </div>
-              <div class="bar-track">
-                <div class="bar-fill bar-fb" style="width:<%= Math.round(fbCount/chTotal*100) %>%"></div>
-              </div>
-              <div class="channel-count"><%= fbCount %></div>
-            </div>
+            <% }); %>
           </div>
         </div>
       </div>
