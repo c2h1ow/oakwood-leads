@@ -25,7 +25,9 @@ router.get('/', async (req, res) => {
       pool.query(`SELECT status, COUNT(*) as count FROM leads GROUP BY status`),
       pool.query(`SELECT COUNT(*) as count FROM leads`),
       pool.query(`SELECT COUNT(*) as count FROM leads WHERE status = 'booked'`),
-      pool.query(`SELECT * FROM leads ORDER BY created_at DESC LIMIT 100`),
+      from && to
+        ? pool.query(`SELECT * FROM leads WHERE (created_at AT TIME ZONE 'Asia/Bangkok')::date BETWEEN $1 AND $2 ORDER BY created_at DESC`, [from, to])
+        : pool.query(`SELECT * FROM leads ORDER BY created_at DESC LIMIT 100`),
       pool.query(`SELECT EXTRACT(HOUR FROM created_at AT TIME ZONE 'Asia/Bangkok') as hour, COUNT(*) as count FROM leads GROUP BY hour ORDER BY hour`),
       rangeQuery,
     ]);
