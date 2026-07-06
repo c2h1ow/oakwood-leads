@@ -166,6 +166,45 @@ router.delete('/leads/:id', async (req, res) => {
   }
 });
 
+// Export leads as CSV
+router.get('/export', async (req, res) => {
+  const { from, to } = req.query;
+  let rows;
+  if (from && to) {
+    const result = await pool.query(
+      `SELECT * FROM leads WHERE (created_at AT TIME ZONE 'Asia/Bangkok')::date BETWEEN $1 AND $2 ORDER BY created_at DESC`,
+      [from, to]
+    );
+    rows = result.rows;
+  } else {
+    const result = await pool.query(`SELECT * FROM leads ORDER BY created_at DESC`);
+    rows = result.rows;
+  }
+
+  const fmtDate = d => {
+    const dt = new Date(new Date(d).toLocaleString('en-US', { timeZone: 'Asia/Bangkok' }));
+    const dd = String(dt.getDate()).padStart(2,'0');
+    const mm = String(dt.getMonth()+1).padStart(2,'0');
+    const yyyy = dt.getFullYear();
+    const hh = String(dt.getHours()).padStart(2,'0');
+    const min = String(dt.getMinutes()).padStart(2,'0');
+    return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+  };
+
+  const escape = v => `"${String(v || '').replace(/"/g, '""')}"`;
+  const headers = ['#','Received','Name','Phone','Channel','Package','Message','Check-in','Nights','Status','Agent'];
+  const csvRows = rows.map(r => [
+    r.id, fmtDate(r.created_at), r.name, r.phone||'', r.channel,
+    r.package_interest||'', r.message||'', r.checkin_date||'', r.nights||'', r.status, r.agent||''
+  ].map(escape).join(','));
+
+  const csv = '﻿' + [headers.join(','), ...csvRows].join('\r\n');
+  const filename = from && to ? `leads_${from}_to_${to}.csv` : `leads_all.csv`;
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.send(csv);
+});
+
 // API: leads JSON
 router.get('/api/leads', async (req, res) => {
   const result = await pool.query('SELECT * FROM leads ORDER BY created_at DESC');

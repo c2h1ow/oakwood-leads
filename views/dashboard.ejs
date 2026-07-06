@@ -158,30 +158,44 @@
       <div class="card-header">
         <h2 class="card-title">📅 Lead Summary by Date Range</h2>
       </div>
-      <div class="card-body">
-        <form method="GET" action="/" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-          <label style="font-size:13px; color:#555;">จาก</label>
-          <input type="date" name="from" value="<%= rangeFrom %>" style="padding:6px 10px; border:1px solid #ddd; border-radius:6px; font-size:13px;" required />
-          <label style="font-size:13px; color:#555;">ถึง</label>
-          <input type="date" name="to" value="<%= rangeTo %>" style="padding:6px 10px; border:1px solid #ddd; border-radius:6px; font-size:13px;" required />
-          <button type="submit" style="padding:6px 18px; background:#6366f1; color:#fff; border:none; border-radius:6px; font-size:13px; cursor:pointer;">ดูผล</button>
-          <% if (rangeFrom && rangeTo) { %>
-            <a href="/" style="padding:6px 12px; color:#888; font-size:13px; text-decoration:none;">ล้าง</a>
-          <% } %>
-        </form>
-        <% if (rangeFrom && rangeTo) { %>
-          <div style="margin-top:14px;">
-            <% const fmtDate = d => d.split('-').reverse().join('/'); %>
-            <p style="font-size:15px; color:#333;">ช่วง <strong><%= fmtDate(rangeFrom) %></strong> ถึง <strong><%= fmtDate(rangeTo) %></strong>: มี lead เข้ามาทั้งหมด <strong style="color:#6366f1; font-size:20px;"><%= rangeTotal %></strong> รายการ</p>
-            <% if (rangeByChannel.length > 0) { %>
-              <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
-                <% rangeByChannel.sort((a,b) => parseInt(b.count) - parseInt(a.count)).forEach(function(r) { %>
-                  <span style="background:#f3f4f6; border-radius:20px; padding:4px 14px; font-size:13px; color:#444;"><%= r.channel %>: <strong><%= r.count %></strong></span>
-                <% }); %>
-              </div>
+      <div class="card-body" style="display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start;">
+        <div style="flex:1; min-width:300px;">
+          <form method="GET" action="/" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <label style="font-size:13px; color:#555;">จาก</label>
+            <input type="date" name="from" value="<%= rangeFrom %>" style="padding:6px 10px; border:1px solid #ddd; border-radius:6px; font-size:13px;" required />
+            <label style="font-size:13px; color:#555;">ถึง</label>
+            <input type="date" name="to" value="<%= rangeTo %>" style="padding:6px 10px; border:1px solid #ddd; border-radius:6px; font-size:13px;" required />
+            <button type="submit" style="padding:6px 18px; background:#6366f1; color:#fff; border:none; border-radius:6px; font-size:13px; cursor:pointer;">ดูผล</button>
+            <% if (rangeFrom && rangeTo) { %>
+              <a href="/" style="padding:6px 12px; color:#888; font-size:13px; text-decoration:none;">ล้าง</a>
             <% } %>
-          </div>
-        <% } %>
+          </form>
+          <% if (rangeFrom && rangeTo) { %>
+            <div style="margin-top:14px;">
+              <% const fmtDate = d => d.split('-').reverse().join('/'); %>
+              <p style="font-size:15px; color:#333;">ช่วง <strong><%= fmtDate(rangeFrom) %></strong> ถึง <strong><%= fmtDate(rangeTo) %></strong>: มี lead เข้ามาทั้งหมด <strong style="color:#6366f1; font-size:20px;"><%= rangeTotal %></strong> รายการ</p>
+              <% if (rangeByChannel.length > 0) { %>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
+                  <% rangeByChannel.sort((a,b) => parseInt(b.count) - parseInt(a.count)).forEach(function(r) { %>
+                    <span style="background:#f3f4f6; border-radius:20px; padding:4px 14px; font-size:13px; color:#444;"><%= r.channel %>: <strong><%= r.count %></strong></span>
+                  <% }); %>
+                </div>
+              <% } %>
+            </div>
+          <% } %>
+        </div>
+        <!-- Export Button -->
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; min-width:140px;">
+          <% if (rangeFrom && rangeTo) { %>
+            <a href="/export?from=<%= rangeFrom %>&to=<%= rangeTo %>" style="display:flex; flex-direction:column; align-items:center; gap:6px; padding:14px 20px; background:#16a34a; color:#fff; border-radius:10px; text-decoration:none; font-size:13px; font-weight:600;">
+              <span style="font-size:24px;">📥</span>Export Excel<br/><span style="font-weight:400; font-size:11px;"><%= fmtDate(rangeFrom) %> – <%= fmtDate(rangeTo) %></span>
+            </a>
+          <% } else { %>
+            <a href="/export" style="display:flex; flex-direction:column; align-items:center; gap:6px; padding:14px 20px; background:#16a34a; color:#fff; border-radius:10px; text-decoration:none; font-size:13px; font-weight:600;">
+              <span style="font-size:24px;">📥</span>Export Excel<br/><span style="font-weight:400; font-size:11px;">ทุก lead</span>
+            </a>
+          <% } %>
+        </div>
       </div>
     </section>
 
