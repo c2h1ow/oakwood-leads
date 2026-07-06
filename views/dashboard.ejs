@@ -158,6 +158,7 @@
       <div class="card-header">
         <h2 class="card-title">📅 Lead Summary by Date Range</h2>
       </div>
+      <% const fmtDate = d => d.split('-').reverse().join('/'); %>
       <div class="card-body" style="display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start;">
         <div style="flex:1; min-width:300px;">
           <form method="GET" action="/" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
@@ -172,7 +173,6 @@
           </form>
           <% if (rangeFrom && rangeTo) { %>
             <div style="margin-top:14px;">
-              <% const fmtDate = d => d.split('-').reverse().join('/'); %>
               <p style="font-size:15px; color:#333;">ช่วง <strong><%= fmtDate(rangeFrom) %></strong> ถึง <strong><%= fmtDate(rangeTo) %></strong>: มี lead เข้ามาทั้งหมด <strong style="color:#6366f1; font-size:20px;"><%= rangeTotal %></strong> รายการ</p>
               <% if (rangeByChannel.length > 0) { %>
                 <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
