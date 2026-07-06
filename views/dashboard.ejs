@@ -112,6 +112,37 @@
       </div>
 
       <!-- By Status -->
+      <!-- Date Range Filter -->
+      <div class="card" style="grid-column: 1 / -1;">
+        <div class="card-header">
+          <h2 class="card-title">📅 Lead Summary by Date Range</h2>
+        </div>
+        <div class="card-body">
+          <form method="GET" action="/" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <label style="font-size:13px; color:#555;">จาก</label>
+            <input type="date" name="from" value="<%= rangeFrom %>" style="padding:6px 10px; border:1px solid #ddd; border-radius:6px; font-size:13px;" required />
+            <label style="font-size:13px; color:#555;">ถึง</label>
+            <input type="date" name="to" value="<%= rangeTo %>" style="padding:6px 10px; border:1px solid #ddd; border-radius:6px; font-size:13px;" required />
+            <button type="submit" style="padding:6px 18px; background:#6366f1; color:#fff; border:none; border-radius:6px; font-size:13px; cursor:pointer;">ดูผล</button>
+            <% if (rangeFrom && rangeTo) { %>
+              <a href="/" style="padding:6px 12px; color:#888; font-size:13px; text-decoration:none;">ล้าง</a>
+            <% } %>
+          </form>
+          <% if (rangeFrom && rangeTo) { %>
+            <div style="margin-top:16px;">
+              <p style="font-size:15px; color:#333;">ช่วง <strong><%= rangeFrom %></strong> ถึง <strong><%= rangeTo %></strong>: มี lead เข้ามาทั้งหมด <strong style="color:#6366f1; font-size:20px;"><%= rangeTotal %></strong> รายการ</p>
+              <% if (rangeByChannel.length > 0) { %>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
+                  <% rangeByChannel.sort((a,b) => b.count - a.count).forEach(function(r) { %>
+                    <span style="background:#f3f4f6; border-radius:20px; padding:4px 14px; font-size:13px; color:#444;"><%= r.channel %>: <strong><%= r.count %></strong></span>
+                  <% }); %>
+                </div>
+              <% } %>
+            </div>
+          <% } %>
+        </div>
+      </div>
+
       <!-- Peak Hours -->
       <div class="card" style="grid-column: 1 / -1;">
         <div class="card-header">
