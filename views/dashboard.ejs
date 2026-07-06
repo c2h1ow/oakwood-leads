@@ -70,9 +70,8 @@
           <h2 class="card-title">Leads by Channel</h2>
         </div>
         <div class="card-body">
-          <% const channelMap = {}; byChannel.forEach(r => channelMap[r.channel] = r.count); %>
-          <% const lineCount = channelMap['LINE'] || 0; %>
-          <% const fbCount = channelMap['Facebook'] || 0; %>
+          <% const lineCount = byChannel.filter(r => r.channel.startsWith('Line')).reduce((s,r) => s + parseInt(r.count), 0); %>
+          <% const fbCount = byChannel.filter(r => r.channel.startsWith('Facebook')).reduce((s,r) => s + parseInt(r.count), 0); %>
           <% const chTotal = lineCount + fbCount || 1; %>
           <div class="channel-bars">
             <div class="channel-row">
@@ -106,13 +105,13 @@
           <% if (byPackage.length === 0) { %>
             <p class="empty-hint">No package data yet</p>
           <% } else { %>
-            <% const pkgTotal = byPackage.reduce((s, r) => s + r.count, 0) || 1; %>
+            <% const pkgTotal = byPackage.reduce((s, r) => s + parseInt(r.count), 0) || 1; %>
             <div class="pkg-list">
               <% byPackage.forEach(function(row, i) { %>
                 <div class="pkg-row">
                   <div class="pkg-name"><%= row.package %></div>
                   <div class="bar-track">
-                    <div class="bar-fill bar-pkg" style="width:<%= Math.round(row.count/pkgTotal*100) %>%"></div>
+                    <div class="bar-fill bar-pkg" style="width:<%= Math.round(parseInt(row.count)/pkgTotal*100) %>%"></div>
                   </div>
                   <div class="pkg-count"><%= row.count %></div>
                 </div>
