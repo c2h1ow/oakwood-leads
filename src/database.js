@@ -34,7 +34,8 @@ async function initSchema() {
   `);
   await pool.query(`
     INSERT INTO packages (name) VALUES
-      ('Room'),('Long Stay'),('Sunday Brunch'),('บุฟเฟต์ตลาดน้ำ'),('บุฟเฟต์อาหารเช้า')
+      ('Room'),('Long Stay'),('Sunday Brunch'),('บุฟเฟต์ตลาดน้ำ'),('บุฟเฟต์อาหารเช้า'),
+      ('Medical Stay'),('Meeting Room'),('บุฟเฟต์ข้าวต้ม'),('Friday Sky Cozy'),('Run for Breakfast')
     ON CONFLICT (name) DO NOTHING
   `);
   console.log('[DB] PostgreSQL schema ready');
