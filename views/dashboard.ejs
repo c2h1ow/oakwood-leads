@@ -298,6 +298,28 @@
       </div>
     </section>
 
+    <!-- Package Manager -->
+    <section class="card" style="margin-top:16px;" id="packageManager">
+      <div class="card-header">
+        <h2 class="card-title">🏷️ จัดการ Package / Promotion</h2>
+      </div>
+      <div class="card-body">
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;" id="pkgList">
+          <% packages.forEach(p => { %>
+            <span style="display:inline-flex; align-items:center; gap:6px; background:#f3f4f6; border-radius:20px; padding:5px 14px; font-size:13px;">
+              <%= p.name %>
+              <button onclick="deletePackage(<%= p.id %>, this)" style="background:none; border:none; cursor:pointer; color:#999; font-size:14px; padding:0; line-height:1;">✕</button>
+            </span>
+          <% }); %>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input type="text" id="newPkgName" placeholder="ชื่อ package ใหม่..." style="padding:7px 12px; border:1px solid #ddd; border-radius:6px; font-size:13px; flex:1; max-width:280px;" />
+          <button onclick="addPackage()" style="padding:7px 18px; background:#6366f1; color:#fff; border:none; border-radius:6px; font-size:13px; cursor:pointer;">+ เพิ่ม</button>
+        </div>
+        <p id="pkgMsg" style="font-size:12px; color:#888; margin-top:6px;"></p>
+      </div>
+    </section>
+
   </main>
 
   <!-- EDIT LEAD MODAL -->
@@ -346,15 +368,7 @@
             <label class="form-label" for="el-package">Package Interest</label>
             <select id="el-package" name="package_interest" class="form-input">
               <option value="">None / Unknown</option>
-              <option value="Room">Room</option>
-              <option value="Long Stay">Long Stay</option>
-              <option value="Medical Stay">Medical Stay</option>
-              <option value="Meeting Room">Meeting Room</option>
-              <option value="Sunday Brunch">Sunday Brunch</option>
-              <option value="บุฟเฟต์อาหารเช้า">บุฟเฟต์อาหารเช้า</option>
-              <option value="บุฟเฟต์ตลาดน้ำ">บุฟเฟต์ตลาดน้ำ</option>
-              <option value="บุฟเฟต์ข้าวต้ม">บุฟเฟต์ข้าวต้ม</option>
-              <option value="Friday Sky Cozy">Friday Sky Cozy</option>
+              <% packages.forEach(p => { %><option value="<%= p.name %>"><%= p.name %></option><% }); %>
             </select>
           </div>
         </div>
@@ -428,15 +442,7 @@
             <label class="form-label" for="fl-package">Package Interest</label>
             <select id="fl-package" name="package_interest" class="form-input">
               <option value="">None / Unknown</option>
-              <option value="Room">Room</option>
-              <option value="Long Stay">Long Stay</option>
-              <option value="Medical Stay">Medical Stay</option>
-              <option value="Meeting Room">Meeting Room</option>
-              <option value="Sunday Brunch">Sunday Brunch</option>
-              <option value="บุฟเฟต์อาหารเช้า">บุฟเฟต์อาหารเช้า</option>
-              <option value="บุฟเฟต์ตลาดน้ำ">บุฟเฟต์ตลาดน้ำ</option>
-              <option value="บุฟเฟต์ข้าวต้ม">บุฟเฟต์ข้าวต้ม</option>
-              <option value="Friday Sky Cozy">Friday Sky Cozy</option>
+              <% packages.forEach(p => { %><option value="<%= p.name %>"><%= p.name %></option><% }); %>
             </select>
           </div>
         </div>
@@ -470,5 +476,26 @@
   <div id="toast" class="toast"></div>
 
   <script src="/js/dashboard.js"></script>
+  <script>
+    async function addPackage() {
+      const input = document.getElementById('newPkgName');
+      const msg = document.getElementById('pkgMsg');
+      const name = input.value.trim();
+      if (!name) return;
+      const res = await fetch('/api/packages', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name}) });
+      const data = await res.json();
+      if (!data.ok) { msg.textContent = data.error || 'เกิดข้อผิดพลาด'; return; }
+      msg.textContent = `เพิ่ม "${name}" แล้วค่ะ`;
+      input.value = '';
+      setTimeout(() => location.reload(), 800);
+    }
+    document.getElementById('newPkgName').addEventListener('keydown', e => { if (e.key === 'Enter') addPackage(); });
+
+    async function deletePackage(id, btn) {
+      if (!confirm('ลบ package นี้?')) return;
+      const res = await fetch(`/api/packages/${id}`, { method:'DELETE' });
+      if ((await res.json()).ok) { btn.closest('span').remove(); }
+    }
+  </script>
 </body>
 </html>

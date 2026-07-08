@@ -25,6 +25,18 @@ async function initSchema() {
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_leads_created_at ON leads(created_at)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_leads_channel ON leads(channel)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status)`);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS packages (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL UNIQUE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await pool.query(`
+    INSERT INTO packages (name) VALUES
+      ('Room'),('Long Stay'),('Sunday Brunch'),('บุฟเฟต์ตลาดน้ำ'),('บุฟเฟต์อาหารเช้า')
+    ON CONFLICT (name) DO NOTHING
+  `);
   console.log('[DB] PostgreSQL schema ready');
 }
 

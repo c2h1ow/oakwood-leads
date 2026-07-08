@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
 
     const [
       todayRes, byChannelRes, byPackageRes, byStatusRes,
-      totalRes, bookedRes, leadsRes, byHourRes, rangeRes
+      totalRes, bookedRes, leadsRes, byHourRes, rangeRes, packagesRes
     ] = await Promise.all([
       pool.query(`SELECT COUNT(*) as count FROM leads WHERE created_at::date = CURRENT_DATE`),
       pool.query(`SELECT channel, COUNT(*) as count FROM leads GROUP BY channel`),
@@ -30,6 +30,7 @@ router.get('/', async (req, res) => {
         : pool.query(`SELECT * FROM leads ORDER BY created_at DESC LIMIT 100`),
       pool.query(`SELECT EXTRACT(HOUR FROM created_at AT TIME ZONE 'Asia/Bangkok') as hour, COUNT(*) as count FROM leads GROUP BY hour ORDER BY hour`),
       rangeQuery,
+      pool.query(`SELECT * FROM packages ORDER BY name`),
     ]);
 
     const totalToday = parseInt(todayRes.rows[0].count);
@@ -53,6 +54,7 @@ router.get('/', async (req, res) => {
       totalToday, byChannel, byPackage, byStatus,
       totalLeads, bookedLeads, conversionRate, leads, byHour,
       rangeFrom, rangeTo, rangeTotal, rangeByChannel,
+      packages: packagesRes.rows,
     });
   } catch (err) {
     console.error('[Dashboard]', err);
@@ -209,6 +211,35 @@ router.get('/export', async (req, res) => {
 router.get('/api/leads', async (req, res) => {
   const result = await pool.query('SELECT * FROM leads ORDER BY created_at DESC');
   res.json(result.rows);
+});
+
+// API: list packages
+router.get('/api/packages', async (req, res) => {
+  const result = await pool.query('SELECT * FROM packages ORDER BY name');
+  res.json(result.rows);
+});
+
+// API: add package
+router.post('/api/packages', async (req, res) => {
+  const { name } = req.body;
+  if (!name || !name.trim()) return res.status(400).json({ error: 'Name required' });
+  try {
+    const result = await pool.query('INSERT INTO packages (name) VALUES ($1) RETURNING *', [name.trim()]);
+    res.json({ ok: true, package: result.rows[0] });
+  } catch (err) {
+    if (err.code === '23505') return res.status(400).json({ error: 'Package already exists' });
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: delete package
+router.delete('/api/packages/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM packages WHERE id = $1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 module.exports = router;
