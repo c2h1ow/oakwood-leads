@@ -83,11 +83,14 @@ const filterStatus  = document.getElementById('filterStatus');
 const filterSearch  = document.getElementById('filterSearch');
 const tableBody     = document.querySelector('#leadsTable tbody');
 
+const filterCount = document.getElementById('filterCount');
+
 function applyFilters() {
   const ch  = filterChannel.value.toLowerCase();
   const st  = filterStatus.value.toLowerCase();
   const q   = filterSearch.value.toLowerCase();
 
+  let visible = 0;
   tableBody.querySelectorAll('tr[data-id]').forEach(row => {
     const rowCh  = (row.dataset.channel  || '').toLowerCase();
     const rowSt  = (row.dataset.status   || '').toLowerCase();
@@ -96,9 +99,19 @@ function applyFilters() {
     const matchCh = !ch || rowCh === ch;
     const matchSt = !st || rowSt === st;
     const matchQ  = !q  || rowTxt.includes(q);
+    const show = matchCh && matchSt && matchQ;
 
-    row.style.display = matchCh && matchSt && matchQ ? '' : 'none';
+    row.style.display = show ? '' : 'none';
+    if (show) visible++;
   });
+
+  const isFiltered = ch || st || q;
+  if (isFiltered) {
+    filterCount.style.display = '';
+    filterCount.textContent = `พบ ${visible} lead`;
+  } else {
+    filterCount.style.display = 'none';
+  }
 }
 
 filterChannel.addEventListener('change', applyFilters);
