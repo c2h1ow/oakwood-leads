@@ -247,7 +247,7 @@
               <th>Nights</th>
               <th>Status</th>
               <th>Agent</th>
-              <th>Replied by</th>
+
               <th></th>
             </tr>
           </thead>
@@ -266,7 +266,7 @@
                   data-nights="<%= lead.nights || '' %>"
                   data-message="<%= lead.message || '' %>"
                   data-agent="<%= lead.agent || '' %>"
-                  data-replied-by="<%= lead.replied_by || '' %>">✏️</button>
+                  >✏️</button>
                 <%= lead.name %>
               </td>
               <td>
@@ -295,7 +295,7 @@
                 </select>
               </td>
               <td class="td-agent"><%= lead.agent || '—' %></td>
-              <td class="td-agent"><%= lead.replied_by || '—' %></td>
+
               <td class="td-actions">
                 <button class="btn-icon btn-delete" title="Delete" data-id="<%= lead.id %>" data-name="<%= lead.name %>">🗑️</button>
               </td>
@@ -380,15 +380,6 @@
             </select>
           </div>
           <div class="form-group form-group--grow">
-            <label class="form-label" for="el-replied-by">Replied by</label>
-            <select id="el-replied-by" name="replied_by" class="form-input">
-              <option value="">—</option>
-              <option value="Reservation">Reservation</option>
-              <option value="Marketing">Marketing</option>
-              <option value="Charm Cuisine">Charm Cuisine</option>
-              <option value="Front Officer">Front Officer</option>
-            </select>
-          </div>
         </div>
 
         <div class="form-row">
@@ -471,15 +462,6 @@
             </select>
           </div>
           <div class="form-group form-group--grow">
-            <label class="form-label" for="fl-replied-by">Replied by</label>
-            <select id="fl-replied-by" name="replied_by" class="form-input">
-              <option value="">—</option>
-              <option value="Reservation">Reservation</option>
-              <option value="Marketing">Marketing</option>
-              <option value="Charm Cuisine">Charm Cuisine</option>
-              <option value="Front Officer">Front Officer</option>
-            </select>
-          </div>
         </div>
 
         <div class="form-row">
