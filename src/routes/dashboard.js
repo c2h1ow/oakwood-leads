@@ -66,7 +66,7 @@ router.get('/', async (req, res) => {
 
 // Manual lead creation
 router.post('/leads', async (req, res) => {
-  const { name, phone, channel, package_interest, checkin_date, nights, message, agent } = req.body;
+  const { name, phone, channel, package_interest, checkin_date, nights, message, agent, replied_by } = req.body;
 
   const validChannels = ['Facebook - Oakwood', 'Facebook - Charm', 'Facebook - Zodiac', 'Line - Oakwood', 'Line - Charm', 'Telephone', 'Walk-in', 'In-house Guest'];
   if (!name || !name.trim()) return res.status(400).json({ error: 'Name is required' });
@@ -75,8 +75,8 @@ router.post('/leads', async (req, res) => {
 
   try {
     const result = await pool.query(`
-      INSERT INTO leads (name, phone, channel, sender_id, message, package_interest, checkin_date, nights, status, agent)
-      VALUES ($1, $2, $3, 'manual', $4, $5, $6, $7, 'new', $8)
+      INSERT INTO leads (name, phone, channel, sender_id, message, package_interest, checkin_date, nights, status, agent, replied_by)
+      VALUES ($1, $2, $3, 'manual', $4, $5, $6, $7, 'new', $8, $9)
       RETURNING *
     `, [
       name.trim(),
@@ -87,6 +87,7 @@ router.post('/leads', async (req, res) => {
       checkin_date || null,
       nights ? parseInt(nights) : null,
       agent.trim(),
+      replied_by ? replied_by.trim() : null,
     ]);
     res.json({ ok: true, lead: result.rows[0] });
   } catch (err) {
@@ -130,7 +131,7 @@ router.post('/leads/:id/details', async (req, res) => {
 
 // Edit lead (full update)
 router.put('/leads/:id', async (req, res) => {
-  const { name, phone, channel, package_interest, checkin_date, nights, message, agent } = req.body;
+  const { name, phone, channel, package_interest, checkin_date, nights, message, agent, replied_by } = req.body;
   const { id } = req.params;
   const validChannels = ['Facebook - Oakwood', 'Facebook - Charm', 'Facebook - Zodiac', 'Line - Oakwood', 'Line - Charm', 'Telephone', 'Walk-in', 'In-house Guest'];
 
@@ -141,8 +142,8 @@ router.put('/leads/:id', async (req, res) => {
   try {
     await pool.query(`
       UPDATE leads SET name=$1, phone=$2, channel=$3, package_interest=$4,
-        checkin_date=$5, nights=$6, message=$7, agent=$8
-      WHERE id=$9
+        checkin_date=$5, nights=$6, message=$7, agent=$8, replied_by=$9
+      WHERE id=$10
     `, [
       name.trim(),
       phone ? phone.trim() : null,
@@ -152,6 +153,7 @@ router.put('/leads/:id', async (req, res) => {
       nights ? parseInt(nights) : null,
       message ? message.trim() : '',
       agent.trim(),
+      replied_by ? replied_by.trim() : null,
       id,
     ]);
     res.json({ ok: true });

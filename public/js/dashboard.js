@@ -134,6 +134,7 @@ function openEditModal(btn) {
   document.getElementById('el-phone').value       = btn.dataset.phone;
   document.getElementById('el-channel').value     = btn.dataset.channel;
   document.getElementById('el-agent').value       = btn.dataset.agent;
+  document.getElementById('el-replied-by').value  = btn.dataset.repliedBy || '';
   document.getElementById('el-package').value     = btn.dataset.package;
   document.getElementById('el-checkin').value     = btn.dataset.checkin;
   document.getElementById('el-nights').value      = btn.dataset.nights;

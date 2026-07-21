@@ -22,6 +22,7 @@ async function initSchema() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
+  await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS replied_by TEXT DEFAULT NULL`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_leads_created_at ON leads(created_at)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_leads_channel ON leads(channel)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status)`);
