@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
 
     const [
       todayRes, byChannelRes, byPackageRes, byStatusRes,
-      totalRes, bookedRes, leadsRes, byHourRes, rangeRes, packagesRes
+      totalRes, bookedRes, deletedRes, leadsRes, byHourRes, rangeRes, packagesRes
     ] = await Promise.all([
       pool.query(`SELECT COUNT(*) as count FROM leads WHERE created_at::date = CURRENT_DATE`),
       pool.query(`SELECT channel, COUNT(*) as count FROM leads GROUP BY channel`),
@@ -25,6 +25,7 @@ router.get('/', async (req, res) => {
       pool.query(`SELECT status, COUNT(*) as count FROM leads GROUP BY status`),
       pool.query(`SELECT COUNT(*) as count FROM leads`),
       pool.query(`SELECT COUNT(*) as count FROM leads WHERE status = 'booked'`),
+      pool.query(`SELECT COALESCE(MAX(id), 0) - COUNT(*) as deleted FROM leads`),
       from && to
         ? pool.query(`SELECT * FROM leads WHERE (created_at AT TIME ZONE 'Asia/Bangkok')::date BETWEEN $1 AND $2 ORDER BY created_at DESC`, [from, to])
         : pool.query(`SELECT * FROM leads ORDER BY created_at DESC LIMIT 100`),
@@ -40,6 +41,7 @@ router.get('/', async (req, res) => {
     const totalLeads = parseInt(totalRes.rows[0].count);
     const bookedLeads = parseInt(bookedRes.rows[0].count);
     const conversionRate = totalLeads > 0 ? Math.round((bookedLeads / totalLeads) * 100) : 0;
+    const deletedLeads = parseInt(deletedRes.rows[0].deleted);
     const leads = leadsRes.rows;
     const byHour = Array.from({length: 24}, (_, h) => {
       const row = byHourRes.rows.find(r => parseInt(r.hour) === h);
@@ -52,7 +54,7 @@ router.get('/', async (req, res) => {
 
     res.render('dashboard', {
       totalToday, byChannel, byPackage, byStatus,
-      totalLeads, bookedLeads, conversionRate, leads, byHour,
+      totalLeads, bookedLeads, conversionRate, deletedLeads, leads, byHour,
       rangeFrom, rangeTo, rangeTotal, rangeByChannel,
       packages: packagesRes.rows,
     });
