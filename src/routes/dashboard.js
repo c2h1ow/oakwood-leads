@@ -66,7 +66,7 @@ router.get('/', async (req, res) => {
 router.post('/leads', async (req, res) => {
   const { name, phone, channel, package_interest, checkin_date, nights, message, agent } = req.body;
 
-  const validChannels = ['Facebook - Oakwood', 'Facebook - Charm', 'Facebook - Zodiac', 'Line - Oakwood', 'Line - Charm', 'Telephone', 'Walk-in'];
+  const validChannels = ['Facebook - Oakwood', 'Facebook - Charm', 'Facebook - Zodiac', 'Line - Oakwood', 'Line - Charm', 'Telephone', 'Walk-in', 'In-house Guest'];
   if (!name || !name.trim()) return res.status(400).json({ error: 'Name is required' });
   if (!validChannels.includes(channel)) return res.status(400).json({ error: 'Invalid channel' });
   if (!agent || !agent.trim()) return res.status(400).json({ error: 'Agent is required' });
@@ -130,7 +130,7 @@ router.post('/leads/:id/details', async (req, res) => {
 router.put('/leads/:id', async (req, res) => {
   const { name, phone, channel, package_interest, checkin_date, nights, message, agent } = req.body;
   const { id } = req.params;
-  const validChannels = ['Facebook - Oakwood', 'Facebook - Charm', 'Facebook - Zodiac', 'Line - Oakwood', 'Line - Charm', 'Telephone', 'Walk-in'];
+  const validChannels = ['Facebook - Oakwood', 'Facebook - Charm', 'Facebook - Zodiac', 'Line - Oakwood', 'Line - Charm', 'Telephone', 'Walk-in', 'In-house Guest'];
 
   if (!name || !name.trim()) return res.status(400).json({ error: 'Name is required' });
   if (!validChannels.includes(channel)) return res.status(400).json({ error: 'Invalid channel' });
